@@ -1,2 +1,0 @@
-option('guile-site', type: 'string', value: '', description: 'overried path to guile "site" directory')
-option('guile-ccache', type: 'string', value: '', description: 'overried path to guile "site-ccache" directory')

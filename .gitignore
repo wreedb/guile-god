@@ -1,4 +1,9 @@
 out/
 build/
 bld/
+backup.*/
+bkp.*/
 *.go
+scratch.scm
+test.scm
+example.scm
