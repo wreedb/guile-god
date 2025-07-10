@@ -1,0 +1,143 @@
+#!/bin/env -S GUILE_AUTO_COMPILE=0 guile
+!#
+;; -*- scheme -*- vim:ft=scheme.guile
+
+(use-modules (ice-9 getopt-long)
+             (ice-9 rdelim)
+             (ice-9 popen)
+             (ice-9 string-fun))
+
+(define cat string-append)
+(define ar assoc-ref)
+
+(define opt-spec
+  '((prefix (value #t))
+    (guile-site (value #t))
+    (guile-ccache (value #t))
+    (datadir (value #t))
+    (libdir (value #t))
+    (docdir (value #t))
+    (infodir (value #t))
+    (version-string (value #t))
+    (help (single-char #\h) (value #f))))
+
+(define (sh cmd)
+  (let* ((stdin (open-input-pipe cmd))
+         (stdout (read-string stdin)))
+    (begin (close-pipe stdin) (string-trim-right stdout))))
+
+(define cmdline (command-line))
+(define parsed-options (getopt-long cmdline opt-spec))
+(define script-name
+  (basename (list-ref (command-line) 0)))
+
+(define (usage-msg)
+  (display "USAGE: ./configure [OPTIONS...]\n")
+  (display "Default values for the options are specified in square-brackets.\n")
+  (display "Configuration:\n")
+  (display "  --prefix=PREFIX\tinstall files under PREFIX [/usr]\n")
+  (display "  --datadir=DIR\t\tshared data files [PREFIX/share]\n")
+  (display "  --libdir=DIR\t\tsystem libraries [PREFIX/lib]\n")
+  (display "  --infodir=DIR\t\tGNU info-pages directory [DATADIR/info]\n")
+  (display "  --docdir=DIR\t\tpackage documentation [DATADIR/doc/guile-god]\n")
+  (display "  --guilesite=DIR\tlocal guile source modules [DATADIR/guile/3.0/site]\n")
+  (display "  --guileccache=DIR\tlocal guile object modules [LIBDIR/guile/3.0/site-ccache]\n")
+  (display "  --version-string=VERS\tset the programs' version [use git]\n")
+  (display "  -h, --help\t\tdisplay this help message\n")
+  (newline))
+
+(define conf-defaults
+  (list (cons 'prefix    "/usr")
+        (cons 'datadir   "$(PREFIX)/share")
+        (cons 'libdir    "$(PREFIX)/lib")
+        (cons 'infodir   "$(DATADIR)/info")
+        (cons 'docdir    "$(DATADIR)/doc/guile-god")
+        (cons 'sitedir   "$(DATADIR)/guile/site/3.0")
+        (cons 'ccachedir "$(LIBDIR)/guile/3.0/site-ccache")
+        (cons 'version   (sh "git describe --tags"))))
+
+(define option-alist (list-copy conf-defaults))
+
+(define infile
+  (list (cons 'prefix "@__PREFIX__@")
+        (cons 'datadir "@__DATADIR__@")
+        (cons 'libdir "@__LIBDIR__@")
+        (cons 'infodir "@__INFODIR__@")
+        (cons 'docdir "@__DOCDIR__@")
+        (cons 'sitedir "@__GUILE-SITE__@")
+        (cons 'ccachedir "@__GUILE-CCACHE__@")
+        (cons 'version "@__VERSION__@")))
+
+(define (write-makefile conf)
+  (let* ((in (open-input-file "Makefile.in"))
+         (contents (read-string in)))
+    (close-input-port in)
+    (for-each
+      (lambda (c)
+        (set! contents
+          (string-replace-substring
+            contents
+            (ar infile c)
+            (ar conf c))))
+        (map car infile))
+    (let ((out (open-output-file "Makefile")))
+      (display contents out)
+      (close-output-port out))))
+
+(define (print-configuration conf)
+  (let ((uprefix (ar conf 'prefix))
+        (udatadir (ar conf 'datadir))
+        (ulibdir (ar conf 'libdir))
+        (uinfodir (ar conf 'infodir))
+        (usitedir (ar conf 'sitedir))
+        (uccachedir (ar conf 'ccachedir))
+        (udocdir (ar conf 'docdir))
+        (uversion (ar conf 'version)))
+    (display "Configuration:\n\n")
+    (display (cat "  prefix:\t\t" uprefix "\n"))
+    (display (cat "  datadir:\t\t" udatadir "\n"))
+    (display (cat "  libdir:\t\t" ulibdir "\n"))
+    (display (cat "  infodir:\t\t" uinfodir "\n"))
+    (display (cat "  docdir:\t\t" udocdir "\n"))
+    (display (cat "  guile site:\t\t" usitedir "\n"))
+    (display (cat "  guile site-ccache:\t" uccachedir "\n"))
+    (display (cat "  version string:\t" uversion "\n\n"))
+    (display "you can now run `make`\n")))
+
+(define (main args opts)
+  (let ((o-help    (option-ref opts 'help #f))
+        (o-prefix  (option-ref opts 'prefix #f))
+        (o-datadir (option-ref opts 'datadir #f))
+        (o-libdir  (option-ref opts 'libdir #f))
+        (o-infodir (option-ref opts 'infodir #f))
+        (o-docdir  (option-ref opts 'docdir #f))
+        (o-site    (option-ref opts 'guile-site #f))
+        (o-ccache  (option-ref opts 'guile-ccache #f))
+        (o-version (option-ref opts 'version-string #f)))
+
+  (when o-help
+    (usage-msg)
+    (quit 0))
+  (when o-prefix
+    (assoc-set! option-alist 'prefix o-prefix))
+  (when o-datadir
+    (assoc-set! option-alist 'datadir o-datadir))
+  (when o-libdir
+    (assoc-set! option-alist 'libdir o-libdir))
+  (when o-infodir
+    (assoc-set! option-alist 'infodir o-infodir))
+  (when o-docdir
+    (assoc-set! option-alist 'docdir o-docdir))
+  (when o-site
+    (assoc-set! option-alist 'sitedir o-site))
+  (when o-ccache
+    (assoc-set! option-alist 'ccachedir o-ccache))
+  (when o-version
+    (assoc-set! option-alist 'version o-version))))
+
+(if (file-exists? "Makefile")
+  (sh "make distclean"))
+
+(main cmdline parsed-options)
+(print-configuration option-alist)
+(write-makefile option-alist)

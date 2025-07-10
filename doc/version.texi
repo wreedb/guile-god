@@ -1,0 +1,9 @@
+@set UPDATED-DATE 2025-07-09
+@set UPDATED 9 July 2025
+@set UPDATED-MONTH July 2025
+@set UPDATED-YEAR 2025
+@set VERSION 0.1.2
+@set AUTHOR-NAME Will Reed
+@set AUTHOR-EMAIL wreed@\disroot.org
+@set REPO-URL https://github.com/wreedb/guile-god
+@set LICENSE LGPL-3.0-or-later

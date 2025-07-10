@@ -1,0 +1,251 @@
+VERSION = @__VERSION__@
+PREFIX ?= @__PREFIX__@
+DATADIR ?= @__DATADIR__@
+LIBDIR ?= @__LIBDIR__@
+GUILE_SITE ?= @__GUILE-SITE__@
+GUILE_CCACHE ?= @__GUILE-CCACHE__@
+INFODIR ?= @__INFODIR__@
+DOCDIR ?= @__DOCDIR__@
+
+GUILD = @guild compile -L src -O2
+
+god.scm = src/god.scm
+util.scm = src/god/util.scm
+token.scm = src/god/token.scm
+parse.scm = src/god/parse.scm
+conv.scm = src/god/conv.scm
+hash.scm = src/god/conv/hash.scm
+
+god.go = src/god.go
+util.go = src/god/util.go
+token.go = src/god/token.go
+parse.go = src/god/parse.go
+conv.go = src/god/conv.go
+hash.go = src/god/conv/hash.go
+
+texidoc = doc/manual.texi
+MAKEINFO = makeinfo -I doc
+
+INFODOC = doc/guile-god.info
+HTMLDOC = doc/guile-god.html
+EPUBDOC = doc/guile-god.epub
+PDFDOC = doc/guile-god.pdf
+
+texi-fdl = doc/fdl-1.3.texi
+license-docs = doc/LICENSE-DOCS.txt
+license-lib = LICENSE.md
+
+
+ALL-DOCS = $(HTMLDOC) $(EPUBDOC) $(PDFDOC) $(INFODOC) $(license-docs) $(license-lib)
+SCHEME_SOURCES = $(god.scm) $(util.scm) $(token.scm) $(parse.scm) $(conv.scm) $(hash.scm)
+GUILE_OBJECTS = $(god.go) $(util.go) $(token.go) $(parse.go) $(conv.go) $(hash.go)
+
+PDF-BYPRODUCTS = manual.fn manual.log manual.toc manual.aux manual.fns
+
+default: $(GUILE_OBJECTS)
+all: default
+
+src/god.go: $(god.scm)
+	$(GUILD) $(god.scm) -o $(god.go) 1>/dev/null
+	@echo -e "GUILD $(god.go)"
+
+src/god/util.go: $(util.scm)
+	$(GUILD) $(util.scm) -o $(util.go) 1>/dev/null
+	@echo -e "GUILD $(util.go)"
+
+src/god/token.go: $(token.scm)
+	$(GUILD) $(token.scm) -o $(token.go) 1>/dev/null
+	@echo -e "GUILD $(token.go)"
+
+src/god/parse.go: $(parse.scm)
+	$(GUILD) $(parse.scm) -o $(parse.go) 1>/dev/null
+	@echo -e "GUILD $(parse.go)"
+
+src/god/conv.go: $(conv.scm)
+	$(GUILD) $(conv.scm) -o $(conv.go) 1>/dev/null
+	@echo -e "GUILD $(conv.go)"
+
+src/god/conv/hash.go: $(hash.scm)
+	$(GUILD) $(hash.scm) -o $(hash.go) 1>/dev/null
+	@echo -e "GUILD $(hash.go)"
+
+doc/guile-god.info: $(texidoc)
+	@$(MAKEINFO) $(texidoc) -o $(INFODOC)
+	@echo -e "MAKEINFO $(INFODOC)"
+
+doc/guile-god.html: $(texidoc)
+	@$(MAKEINFO) $(texidoc) --html -o $(HTMLDOC)
+	@echo -e "MAKEINFO $(HTMLDOC)"
+
+doc/guile-god.epub: $(texidoc)
+	@$(MAKEINFO) $(texidoc) --epub3 -o $(EPUBDOC)
+	@echo -e "MAKEINFO $(EPUBDOC)"
+
+doc/guile-god.pdf: $(texidoc)
+	@$(MAKEINFO) $(texidoc) --pdf -o $(PDFDOC) 1>/dev/null
+	@echo -e "MAKEINFO $(PDFDOC)"
+	@-rm -f $(PDF-BYPRODUCTS)
+
+doc/LICENSE-DOCS.txt: $(texi-fdl)
+	@makeinfo --plaintext $(texi-fdl) -o $(license-docs)
+	@echo -e "MAKEINFO $(license-docs)"
+
+license-lib: $(license-lib)
+license-docs: $(license-docs)
+info: $(INFODOC)
+html: $(HTMLDOC)
+epub: $(EPUBDOC)
+pdf: $(PDFDOC)
+docs: $(ALL-DOCS)
+
+clean-info:
+	@-rm -f $(INFODOC)
+	@echo -e "CLEAN $(INFODOC)"
+
+clean-epub:
+	@-rm -f $(EPUBDOC)
+	@echo -e "CLEAN $(EPUBDOC)"
+
+clean-pdf:
+	@-rm -f $(PDFDOC)
+	@echo -e "CLEAN $(PDFDOC)"
+
+clean-html:
+	@-rm -rf $(HTMLDOC)
+	@echo -e "CLEAN $(HTMLDOC)"
+
+clean-license-docs:
+	@-rm -f $(license-docs)
+	@echo -e "CLEAN $(license-docs)"
+
+clean-docs: clean-info clean-html clean-epub clean-pdf clean-license-docs
+
+install-license-lib: $(license-lib)
+	@install -Dm 644 $(license-lib) -t $(DESTDIR)$(DOCDIR)
+	@echo -e "INSTALL $(DOCDIR)/LICENSE.md"
+
+install-license-docs: $(license-docs)
+	@install -Dm 644 $(license-docs) -t $(DESTDIR)$(DOCDIR)
+	@echo -e "INSTALL $(DOCDIR)/LICENSE-DOCS.txt"
+
+install-licenses: install-license-lib install-license-docs
+
+uninstall-license-lib:
+	@-rm -f $(DESTDIR)$(DOCDIR)/LICENSE.md
+	@echo -e "UNINSTALL $(DOCDIR)/LICENSE.md"
+
+uninstall-license-docs:
+	@-rm -f $(DESTDIR)$(DOCDIR)/LICENSE-DOCS.txt
+	@echo -e "UNINSTALL $(DOCDIR)/LICENSE-DOCS.txt"
+
+uninstall-licenses: uninstall-license-docs uninstall-license-lib
+
+install-info: $(INFODOC)
+	@install -Dm 644 $(INFODOC) $(DESTDIR)$(INFODIR)/guile-god.info
+	@install-info --info-dir $(DESTDIR)$(INFODIR) --info-file $(INFODOC)
+	@echo -e "INSTALL $(INFODIR)/guile-god.info"
+
+uninstall-info:
+	@-install-info --delete --info-dir $(DESTDIR)$(INFODIR) --info-file $(DESTDIR)$(INFODIR)/guile-god.info
+	@-rm -f $(DESTDIR)$(INFODIR)/guile-god.info
+	@echo -e "UNINSTALL $(INFODIR)/guile-god.info"
+
+install-html: $(HTMLDOC)
+	@install -Dm 644 $(HTMLDOC)/*.html -t $(DESTDIR)$(DOCDIR)/html
+	@echo -e "INSTALL $(DOCDIR)/html"
+
+uninstall-html:
+	@-rm -rf $(DESTDIR)$(DOCDIR)/html
+	@echo -e "UNINSTALL $(DOCDIR)/html"
+
+install-epub: $(EPUBDOC)
+	@install -Dm 644 $(EPUBDOC) $(DESTDIR)$(DOCDIR)/guile-god.epub
+	@echo -e "INSTALL $(DOCDIR)/guile-god.epub"
+
+uninstall-epub:
+	@-rm -f $(DESTDIR)$(DOCDIR)/guile-god.epub
+	@echo -e "UNINSTALL $(DOCDIR)/guile-god.epub"
+
+install-pdf: $(PDFDOC)
+	@install -Dm 644 $(PDFDOC) $(DESTDIR)$(DOCDIR)/guile-god.pdf
+	@echo -e "INSTALL $(DOCDIR)/guile-god.pdf"
+
+uninstall-pdf:
+	@-rm -f $(DESTDIR)$(DOCDIR)/guile-god.pdf
+	@echo -e "UNINSTALL $(DOCDIR)/guile-god.pdf"
+
+install-docs: install-info install-html install-epub install-pdf install-license-lib install-license-docs
+uninstall-docs: uninstall-info uninstall-html uninstall-epub uninstall-pdf uninstall-license-lib uninstall-license-docs
+	@-rmdir $(DESTDIR)$(DOCDIR)
+	@echo -e "UNINSTALL $(DOCDIR)"
+
+install-scheme-sources: $(GUILE_OBJECTS)
+	@install -Dm 644 $(god.scm) $(DESTDIR)$(GUILE_SITE)/god.scm
+	@echo -e "INSTALL $(GUILE_SITE)/god.scm"
+	@install -Dm 644 $(util.scm) $(DESTDIR)$(GUILE_SITE)/god/util.scm
+	@echo -e "INSTALL $(GUILE_SITE)/god/util.scm"
+	@install -Dm 644 $(token.scm) $(DESTDIR)$(GUILE_SITE)/god/token.scm
+	@echo -e "INSTALL $(GUILE_SITE)/god/token.scm"
+	@install -Dm 644 $(parse.scm) $(DESTDIR)$(GUILE_SITE)/god/parse.scm
+	@echo -e "INSTALL $(GUILE_SITE)/god/parse.scm"
+	@install -Dm 644 $(conv.scm) $(DESTDIR)$(GUILE_SITE)/god/conv.scm
+	@echo -e "INSTALL $(GUILE_SITE)/god/conv.scm"
+	@install -Dm 644 $(hash.scm) $(DESTDIR)$(GUILE_SITE)/god/conv/hash.scm
+	@echo -e "INSTALL $(GUILE_SITE)/god/conv/hash.scm"
+
+install-guile-objects: $(GUILE_OBJECTS)
+	@install -Dm 644 $(god.go) $(DESTDIR)$(GUILE_CCACHE)/god.go
+	@echo -e "INSTALL $(GUILE_CCACHE)/god.go"
+	@install -Dm 644 $(util.go) $(DESTDIR)$(GUILE_CCACHE)/god/util.go
+	@echo -e "INSTALL $(GUILE_CCACHE)/god/util.go"
+	@install -Dm 644 $(token.go) $(DESTDIR)$(GUILE_CCACHE)/god/token.go
+	@echo -e "INSTALL $(GUILE_CCACHE)/god/token.go"
+	@install -Dm 644 $(parse.go) $(DESTDIR)$(GUILE_CCACHE)/god/parse.go
+	@echo -e "INSTALL $(GUILE_CCACHE)/god/parse.go"
+	@install -Dm 644 $(conv.go) $(DESTDIR)$(GUILE_CCACHE)/god/conv.go
+	@echo -e "INSTALL $(GUILE_CCACHE)/god/conv.go"
+	@install -Dm 644 $(hash.go) $(DESTDIR)$(GUILE_CCACHE)/god/conv/hash.go
+	@echo -e "INSTALL $(GUILE_CCACHE)/god/conv/hash.go"
+
+install: install-guile-objects install-scheme-sources install-info install-licenses
+
+uninstall-scheme-sources:
+	@-rm -f $(DESTDIR)$(GUILE_SITE)/god.scm
+	@echo -e "UNINSTALL $(GUILE_SITE)/god.scm"
+	@-find $(DESTDIR)$(GUILE_SITE)/god -type f -name '*.scm' -exec rm -f {} \;
+	@echo -e "UNINSTALL $(GUILE_SITE)/**.scm"
+	@-rmdir $(DESTDIR)$(GUILE_SITE)/god/conv
+	@echo -e "UNINSTALL $(GUILE_SITE)/god/conv"
+	@-rmdir $(DESTDIR)$(GUILE_SITE)/god
+	@echo -e "UNINSTALL $(GUILE_SITE)/god"
+
+uninstall-guile-objects:
+	@-rm -f $(DESTDIR)$(GUILE_CCACHE)/god.go
+	@echo -e "UNINSTALL $(GUILE_CCACHE)/god.go"
+	@-find  $(DESTDIR)$(GUILE_CCACHE)/god -type f -name '*.go' -exec rm -f {} \;
+	@echo -e "UNINSTALL $(GUILE_CCACHE)/god/**.go"
+	@-rmdir $(DESTDIR)$(GUILE_CCACHE)/god/conv
+	@echo -e "UNINSTALL $(GUILE_CCACHE)/god/conv"
+	@-rmdir $(DESTDIR)$(GUILE_CCACHE)/god
+	@echo -e "UNINSTALL $(GUILE_CCACHE)/god"
+
+uninstall: uninstall-scheme-sources uninstall-guile-objects uninstall-info uninstall-licenses
+
+clean-objects:
+	@-rm -f $(GUILE_OBJECTS)
+	@echo -e "CLEAN src/**.go"
+
+clean: clean-objects clean-docs
+
+distclean: clean
+	@-rm -f Makefile
+	@echo "NOTE ./configure must be run again"
+
+check: $(GUILE_OBJECTS)
+	@guile -s test/all.scm
+
+.PHONY: default all check clean-objects clean distclean
+.PHONY: info pdf html epub docs license-lib license-docs
+.PHONY: clean-docs clean-epub clean-info clean-pdf clean-html clean-license-docs
+.PHONY: uninstall uninstall-pdf uninstall-info uninstall-html uninstall-epub uninstall-docs uninstall-guile-objects uninstall-scheme-sources uninstall-license-docs uninstall-license-lib uninstall-licenses
+.PHONY: install install-pdf install-info install-html install-epub install-docs install-guile-objects install-scheme-sources install-license-lib install-license-docs install-licenses

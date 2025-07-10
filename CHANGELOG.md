@@ -13,13 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - doc/manual.texi: texinfo manual document
 - doc/version.texi: variable data for manual.texi
 - doc/fdl-1.3.text: license for documentation
+- Makefile.in: GNU Makefile template
+- configure: Guile script to define default make variables
 
 ### Changed
 - README.md: clarify manual license, update example
+- INSTALL.md: update install instructions
 
 ### Removed
 - build.ninja: too verbose, don't want to generate
-
 
 ## 0.1.1 [2025-07-07]
 

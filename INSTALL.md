@@ -8,14 +8,22 @@
 ---
 ### Instructions
 #### GNU Make
-Simply issue `make` to build the Guile objects.  
-If you wish to install them, you can alter the install locations with  
-`PREFIX`, `DESTDIR`, `GUILE_SITE` and `GUILE_CCACHE`, E.g.:
+Use the `configure` script to prepare the Makefile with your 
+desired install locations:
 ```sh
-make PREFIX=/usr GUILE_SITE=/usr/share/guile/site install
+./configure --prefix=/usr/local
+make
+make check # to run the tests
+make install # with root (sudo) priviledge if needed
+make uninstall # to uninstall
 ```
-To uninstall, use `make uninstall`. You will need to provide the 
-same variables on the command line if you overrode them when installing.
+###### Extra Documentation
+You may also install the documentation in html, pdf and epub formats:
+```sh
+make html pdf epub
+make install-html install-pdf install-epub
+make uninstall-html uninstall-pdf uninstall-epub
+```
 
 ---
 #### Manually
@@ -28,13 +36,14 @@ find src -type f -name "*.scm" \
 And to install them, you can run the following (substituing 
 `/path/to/install/` with your desired location):
 ```sh
-install -m 644 src/god/*.scm -Dt      /path/to/install/site/god
-install -m 644 src/god/conv/*.scm -Dt /path/to/install/site/god/conv
-install -m 644 src/god/*.go -Dt       /path/to/install/site-ccache/god
-install -m 644 src/god/conv/*.go -Dt  /path/to/install/site-ccache/god/conv
+install -m 644 src/god.scm -Dt        /path/to/guile/site/3.0
+install -m 644 src/god/*.scm -Dt      /path/to/guile/site/3.0/
+install -m 644 src/god/conv/*.scm -Dt /path/to/guile/site/god/conv
+install -m 644 src/god.go -Dt         /path/to/guile/3.0/site-ccache
+install -m 644 src/god/*.go -Dt       /path/to/guile/3.0/site-ccache/god
+install -m 644 src/god/conv/*.go -Dt  /path/to/guile/3.0/site-ccache/god/conv
 
 ```
-
 
 Guile libraries (depending on your environment), typically will be installed in:
 + `/usr/share/guile/site/3.0/<library>` for source files
