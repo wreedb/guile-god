@@ -8,3 +8,16 @@ scratch.scm
 test.scm
 example.scm
 .ninja_log
+doc/guile-god_html
+doc/LICENSE-DOCS.txt
+doc/*/*.html
+doc/*.html
+doc/*.pdf
+doc/*.epub
+doc/*.info
+*.fn
+*.log
+*.fns
+*.toc
+*.aux
+Makefile

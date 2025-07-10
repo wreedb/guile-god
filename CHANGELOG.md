@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased [2025-07-10]
+
+### Added
+- src/god.scm: main module file to import submodules
+- src/util.scm: separated helper functions from other modules
+- doc/manual.texi: texinfo manual document
+- doc/version.texi: variable data for manual.texi
+- doc/fdl-1.3.text: license for documentation
+
+### Changed
+- README.md: clarify manual license, update example
+
+### Removed
+- build.ninja: too verbose, don't want to generate
+
+
 ## 0.1.1 [2025-07-07]
 
 ### Added

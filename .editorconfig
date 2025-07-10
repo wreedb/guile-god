@@ -6,6 +6,10 @@ charset = utf-8
 trim_trailing_whitespace = false
 insert_final_newline = false
 
+[*.texi]
+indent_style = tab
+tab_size = 4
+
 [*.scm]
 indent_style = space
 indent_size = 2
@@ -14,7 +18,8 @@ indent_size = 2
 indent_style = space
 indent_size = 2
 
-[Makefile]
+[{Makefile,Makefile.in}]
+insert_final_newline = true
 indent_style = tab
 tab_size = 4
 

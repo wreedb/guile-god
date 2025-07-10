@@ -1,5 +1,6 @@
 (define-module (god parse)
   #:use-module (god token)
+  #:use-module (god util)
   #:use-module (srfi srfi-9)
   #:use-module (srfi srfi-1)
   #:use-module (ice-9 match)
@@ -200,10 +201,8 @@
 
 (define (god-parse-file file)
   (if (file-exists? file)
-    (let* ((fh (open-input-file file))
-           (contents (read-string fh))
+    (let* ((contents (file->string file))
            (tokens (tokeneyes contents))
            (state (make-parser-state tokens 0)))
-      (close-port fh)
       (parse-document state))
     (error (format #f "file ~a was not found" file))))

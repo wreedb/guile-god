@@ -1,14 +1,13 @@
 (define-module (god conv hash)
   #:use-module (god parse)
   #:use-module (god conv)
+  #:use-module (god util)
   #:export (god-list->hash!
             god-field->hash!
             god-map->hash!
             god-list->hash
             god-map->hash
-            god-doc->hash
-            god-any->hash!
-            hash-path))
+            god-doc->hash))
 
 (define (god-list->hash! lst ht key)
   ;; Populate the hash table at 'key' with list contents
@@ -76,24 +75,3 @@
                 (god-field->hash! field ht))
               (god-document-fields doc))
     ht))
-
-(define (hash-path ht . keys)
-  "search through hash table HT using sequence KEYS"
-  (let loop ((table ht) (remaining-keys keys))
-    (if (null? remaining-keys)
-        table
-        (loop (hash-ref table (car remaining-keys))
-              (cdr remaining-keys)))))
-
-;; Alternative: Even more stateful - single hash table for everything
-(define (god-any->hash! obj ht key)
-  "Generic converter that handles any god object type"
-  (cond
-    ((god-element? obj)
-     (hash-set! ht key (god-element-value obj)))
-    ((god-list? obj)
-     (god-list->hash! obj ht key))
-    ((god-map? obj)
-     (god-map->hash! obj ht key))
-    (else
-     (hash-set! ht key obj))))

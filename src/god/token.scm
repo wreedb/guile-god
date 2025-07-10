@@ -1,8 +1,7 @@
 (define-module (god token)
+  #:use-module (god util)
   #:use-module (ice-9 match)
   #:use-module (ice-9 regex)
-  #:use-module (ice-9 rdelim)
-  #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-9)
   #:export (make-god-token
             god-token?
@@ -10,25 +9,7 @@
             god-token-value
             god-token-line
             god-token-column
-            incr
-            decr
-            add
-            minus
-            file->string
-            tokeneyes
-            single-chars
-            re-spacing
-            re-newline
-            re-comment
-            re-identifier
-            re-bool
-            re-null
-            re-number
-            validate-token
-            str-unquote
-            str-escape
-            last
-            list-rmi))
+            tokeneyes))
 
 (define-record-type god-token
   (make-god-token type value line column)
@@ -58,12 +39,6 @@
 (define re-string-normal (make-regexp "^\"([^\"\\\\]|\\\\.)*\""))
 (define re-number (make-regexp "^-?[0-9]+\\.?[0-9]*([eE][+-]?[0-9]+)?"))
 
-(define (file->string path)
-  (let* ((handle (open-input-file path))
-         (cont (read-string handle)))
-    (close-port handle)
-    (begin cont)))
-
 (define (str-escape raw-content)
   (let loop ((chars (string->list raw-content))
              (result '()))
@@ -82,28 +57,12 @@
       (else
        (loop (cdr chars) (cons (car chars) result))))))
 
-(define (incr x) (begin (+ 1 x)))
-(define (decr x) (begin (- 1 x)))
-(define (add x y) (begin (+ x y)))
-(define (minus x y) (begin (- x y)))
-
-(define (last lst)
-  (if (list? lst)
-    (begin (minus (length lst) 1))
-    (begin (error "input must be a list"))))
-
-(define (list-rmi index lst)
-  (if (and (number? index) (list? lst))
-    (begin (append (take lst index)
-                   (drop lst (incr index))))
-    (begin (error "expected number,list arguments"))))
-
 (define (str-unquote str)
   (unless (string? str) (error "expected string argument"))
   (let* ((lst (string->list str))
-         (lastx (last lst)))
+         (lastx (last-index lst)))
     (begin
-      (list->string (list-rmi 0 (list-rmi lastx lst))))))
+      (list->string (list-rm-index 0 (list-rm-index lastx lst))))))
 
 (define (tokeneyes input)
   (let ((len (string-length input)))

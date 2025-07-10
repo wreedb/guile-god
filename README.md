@@ -9,9 +9,8 @@ See [INSTALL.md](./INSTALL.md)
 #### Usage
 Once installed, you can utilize it like so:
 ```scheme
-(use-modules (god parse)
-             (god conv)
-             (ice-9 pretty-print))
+(use-modules (ice-9 pretty-print)
+             (god))
 
 (define sample (god-parse-file "example/simple.god"))
 (pretty-print (god-doc->scm sample))
@@ -25,3 +24,5 @@ as the default is a nested association list.
 #### Licensing
 This repository is licensed under the GNU Lesser General Public License, version 3.0.
 See [LICENSE.md](./LICENSE.md) for the license text itself, or the [dedicated page](https://www.gnu.org/licenses/lgpl-3.0.en.html).
+Files within the `doc` directory are licensed under the GNU Free Documentation 
+License, version 1.3.
